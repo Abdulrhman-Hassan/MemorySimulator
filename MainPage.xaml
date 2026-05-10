@@ -1,0 +1,434 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Page
+    x:Class="MemorySimulator.MainPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="using:MemorySimulator"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    Loaded="Page_Loaded">
+
+    <Page.Resources>
+        
+        <SolidColorBrush x:Key="HoleBrush" Color="#3D3D3D" />
+        <SolidColorBrush x:Key="ReservedBrush" Color="#1A1A2E" />
+    </Page.Resources>
+
+    <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="380" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+
+        
+        
+        
+        <ScrollViewer Grid.Column="0"
+                      VerticalScrollBarVisibility="Auto"
+                      Padding="20,16,16,20">
+            <StackPanel Spacing="16">
+
+                
+                <TextBlock Text="Memory Segmentation Simulator"
+                           Style="{ThemeResource SubtitleTextBlockStyle}"
+                           FontWeight="Bold"
+                           Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" />
+
+                
+                <InfoBar x:Name="StatusInfoBar"
+                         IsOpen="False"
+                         IsClosable="True"
+                         Severity="Informational"
+                         Title=""
+                         Message="" />
+
+                
+                <Expander x:Name="SetupExpander"
+                          Header="Memory Setup"
+                          IsExpanded="True"
+                          HorizontalAlignment="Stretch"
+                          HorizontalContentAlignment="Stretch">
+                    <StackPanel Spacing="12" Padding="0,8,0,0">
+
+                        
+                        <NumberBox x:Name="TotalMemorySizeInput"
+                                   Header="Total Memory Size"
+                                   PlaceholderText="e.g. 1000"
+                                   Minimum="1"
+                                   SpinButtonPlacementMode="Compact"
+                                   SmallChange="100"
+                                   LargeChange="1000" />
+
+                        
+                        <TextBlock Text="Initial Free Holes"
+                                   Style="{ThemeResource BodyStrongTextBlockStyle}" />
+
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <NumberBox x:Name="HoleStartInput"
+                                       Header="Start Address"
+                                       PlaceholderText="0"
+                                       Minimum="0"
+                                       SpinButtonPlacementMode="Compact"
+                                       Margin="0,0,4,0"
+                                       Grid.Column="0" />
+                            <NumberBox x:Name="HoleSizeInput"
+                                       Header="Size"
+                                       PlaceholderText="100"
+                                       Minimum="1"
+                                       SpinButtonPlacementMode="Compact"
+                                       Margin="4,0,4,0"
+                                       Grid.Column="1" />
+                            <Button x:Name="AddHoleButton"
+                                    Content="&#xE710;"
+                                    FontFamily="{ThemeResource SymbolThemeFontFamily}"
+                                    Click="AddHole_Click"
+                                    VerticalAlignment="Bottom"
+                                    Margin="4,0,0,0"
+                                    ToolTipService.ToolTip="Add Hole"
+                                    Grid.Column="2"
+                                    Style="{ThemeResource AccentButtonStyle}" />
+                        </Grid>
+
+                        <ListView x:Name="HolesListView"
+                                  MaxHeight="150"
+                                  SelectionMode="None"
+                                  BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                                  BorderThickness="1"
+                                  CornerRadius="4">
+                            <ListView.ItemTemplate>
+                                <DataTemplate>
+                                    <Grid Padding="4,2">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock VerticalAlignment="Center"
+                                                   Grid.Column="0">
+                                            <Run Text="Start: " />
+                                            <Run Text="{Binding StartingAddress}" FontWeight="SemiBold" />
+                                            <Run Text="  Size: " />
+                                            <Run Text="{Binding Size}" FontWeight="SemiBold" />
+                                        </TextBlock>
+                                        <Button Content="&#xE74D;"
+                                                FontFamily="{ThemeResource SymbolThemeFontFamily}"
+                                                Tag="{Binding}"
+                                                Click="RemoveHole_Click"
+                                                ToolTipService.ToolTip="Remove"
+                                                Background="Transparent"
+                                                Grid.Column="1" />
+                                    </Grid>
+                                </DataTemplate>
+                            </ListView.ItemTemplate>
+                        </ListView>
+
+                        
+                        <ComboBox x:Name="AlgorithmComboBox"
+                                  Header="Allocation Method"
+                                  HorizontalAlignment="Stretch"
+                                  SelectedIndex="0">
+                            <ComboBoxItem Content="First-Fit" Tag="FirstFit" />
+                            <ComboBoxItem Content="Best-Fit" Tag="BestFit" />
+                        </ComboBox>
+
+                        <Button x:Name="InitializeMemoryButton"
+                                Content="Initialize Memory"
+                                Click="InitializeMemory_Click"
+                                HorizontalAlignment="Stretch"
+                                Style="{ThemeResource AccentButtonStyle}" />
+                    </StackPanel>
+                </Expander>
+
+                
+                <Expander x:Name="AllocationExpander"
+                          Header="Allocate Process"
+                          IsExpanded="True"
+                          HorizontalAlignment="Stretch"
+                          HorizontalContentAlignment="Stretch">
+                    <StackPanel Spacing="12" Padding="0,8,0,0">
+
+                        
+                        <TextBox x:Name="ProcessIdInput"
+                                 Header="Process ID"
+                                 PlaceholderText="e.g. P1" />
+
+                        
+                        <TextBlock Text="Segments"
+                                   Style="{ThemeResource BodyStrongTextBlockStyle}" />
+
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBox x:Name="SegmentNameInput"
+                                     Header="Name"
+                                     PlaceholderText="e.g. Code"
+                                     Margin="0,0,4,0"
+                                     Grid.Column="0" />
+                            <NumberBox x:Name="SegmentSizeInput"
+                                       Header="Size"
+                                       PlaceholderText="50"
+                                       Minimum="1"
+                                       SpinButtonPlacementMode="Compact"
+                                       Margin="4,0,4,0"
+                                       Grid.Column="1" />
+                            <Button Content="&#xE710;"
+                                    FontFamily="{ThemeResource SymbolThemeFontFamily}"
+                                    Click="AddSegment_Click"
+                                    VerticalAlignment="Bottom"
+                                    Margin="4,0,0,0"
+                                    ToolTipService.ToolTip="Add Segment"
+                                    Grid.Column="2"
+                                    Style="{ThemeResource AccentButtonStyle}" />
+                        </Grid>
+
+                        <ListView x:Name="SegmentsListView"
+                                  MaxHeight="150"
+                                  SelectionMode="None"
+                                  BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                                  BorderThickness="1"
+                                  CornerRadius="4">
+                            <ListView.ItemTemplate>
+                                <DataTemplate>
+                                    <Grid Padding="4,2">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock VerticalAlignment="Center"
+                                                   Grid.Column="0">
+                                            <Run Text="{Binding Name}" FontWeight="SemiBold" />
+                                            <Run Text=" - Size: " />
+                                            <Run Text="{Binding Size}" FontWeight="SemiBold" />
+                                        </TextBlock>
+                                        <Button Content="&#xE74D;"
+                                                FontFamily="{ThemeResource SymbolThemeFontFamily}"
+                                                Tag="{Binding}"
+                                                Click="RemoveSegment_Click"
+                                                ToolTipService.ToolTip="Remove"
+                                                Background="Transparent"
+                                                Grid.Column="1" />
+                                    </Grid>
+                                </DataTemplate>
+                            </ListView.ItemTemplate>
+                        </ListView>
+
+                        <Button Content="Allocate Process"
+                                Click="AllocateProcess_Click"
+                                HorizontalAlignment="Stretch"
+                                Style="{ThemeResource AccentButtonStyle}" />
+                    </StackPanel>
+                </Expander>
+
+                
+                <Expander x:Name="DeallocationExpander"
+                          Header="Deallocate Process"
+                          IsExpanded="True"
+                          HorizontalAlignment="Stretch"
+                          HorizontalContentAlignment="Stretch">
+                    <StackPanel Spacing="12" Padding="0,8,0,0">
+                        <TextBlock Text="Active Processes"
+                                   Style="{ThemeResource BodyStrongTextBlockStyle}" />
+
+                        <ListView x:Name="ActiveProcessesListView"
+                                  MaxHeight="200"
+                                  SelectionMode="None"
+                                  BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                                  BorderThickness="1"
+                                  CornerRadius="4">
+                            <ListView.ItemTemplate>
+                                <DataTemplate>
+                                    <Grid Padding="4,2">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Text="{Binding}"
+                                                   VerticalAlignment="Center"
+                                                   FontWeight="SemiBold"
+                                                   Grid.Column="0" />
+                                        <Button Content="Deallocate"
+                                                Tag="{Binding}"
+                                                Click="DeallocateProcess_Click"
+                                                ToolTipService.ToolTip="Deallocate this process"
+                                                Grid.Column="1" />
+                                    </Grid>
+                                </DataTemplate>
+                            </ListView.ItemTemplate>
+                        </ListView>
+
+                        <TextBlock x:Name="NoProcessesText"
+                                   Text="No processes allocated yet."
+                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                   FontStyle="Italic" />
+                    </StackPanel>
+                </Expander>
+
+                
+                <Button Content="Reset Simulation"
+                        Click="ResetSimulation_Click"
+                        HorizontalAlignment="Stretch" />
+
+            </StackPanel>
+        </ScrollViewer>
+
+        
+        
+        
+        <Grid Grid.Column="1">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <ScrollViewer Grid.Row="0" VerticalScrollBarVisibility="Auto" Padding="16">
+                <StackPanel Spacing="16">
+
+                    
+                    <TextBlock Text="Memory Layout"
+                               Style="{ThemeResource SubtitleTextBlockStyle}"
+                               FontWeight="Bold" />
+
+                    <Border BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                            BorderThickness="2"
+                            CornerRadius="8"
+                            Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                            Padding="0"
+                            MinHeight="100">
+                        <ItemsControl x:Name="MemoryLayoutControl">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <StackPanel Orientation="Vertical" />
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                        </ItemsControl>
+                    </Border>
+
+                    
+                    <StackPanel Orientation="Horizontal" Spacing="16"
+                                HorizontalAlignment="Center"
+                                Margin="0,4,0,0">
+                        <StackPanel Orientation="Horizontal" Spacing="4">
+                            <Border Width="16" Height="16" CornerRadius="2"
+                                    Background="#3D3D3D" />
+                            <TextBlock Text="Free (Hole)" VerticalAlignment="Center"
+                                       Style="{ThemeResource CaptionTextBlockStyle}" />
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Spacing="4">
+                            <Border Width="16" Height="16" CornerRadius="2"
+                                    Background="#1A1A2E" />
+                            <TextBlock Text="OS / Reserved" VerticalAlignment="Center"
+                                       Style="{ThemeResource CaptionTextBlockStyle}" />
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Spacing="4">
+                            <Border Width="16" Height="16" CornerRadius="2">
+                                <Border.Background>
+                                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                        <GradientStop Color="#0078D4" Offset="0" />
+                                        <GradientStop Color="#E74856" Offset="0.5" />
+                                        <GradientStop Color="#00B294" Offset="1" />
+                                    </LinearGradientBrush>
+                                </Border.Background>
+                            </Border>
+                            <TextBlock Text="Process Segments" VerticalAlignment="Center"
+                                       Style="{ThemeResource CaptionTextBlockStyle}" />
+                        </StackPanel>
+                    </StackPanel>
+
+                    
+                    <TextBlock Text="Segment Tables (per Process)"
+                               Style="{ThemeResource SubtitleTextBlockStyle}"
+                               FontWeight="Bold"
+                               Margin="0,8,0,0" />
+
+                    <ItemsControl x:Name="SegmentTablesControl">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <StackPanel Orientation="Vertical" Spacing="12" />
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                    </ItemsControl>
+
+                    <TextBlock x:Name="NoSegmentTablesText"
+                               Text="No processes allocated."
+                               Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                               FontStyle="Italic" />
+
+                    
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+
+                        
+                        <StackPanel Grid.Column="0" Spacing="8" Margin="0,0,8,0">
+                            <TextBlock Text="Allocated Partitions"
+                                       Style="{ThemeResource BodyStrongTextBlockStyle}" />
+                            <ListView x:Name="AllocatedPartitionsListView"
+                                      MaxHeight="300"
+                                      SelectionMode="None"
+                                      BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                                      BorderThickness="1"
+                                      CornerRadius="4">
+                                <ListView.HeaderTemplate>
+                                    <DataTemplate>
+                                        <Grid Padding="8,4"
+                                              Background="{ThemeResource CardBackgroundFillColorSecondaryBrush}">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="*" />
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Text="Process" FontWeight="Bold" Grid.Column="0" />
+                                            <TextBlock Text="Segment" FontWeight="Bold" Grid.Column="1" />
+                                            <TextBlock Text="Base" FontWeight="Bold" Grid.Column="2" />
+                                            <TextBlock Text="Size" FontWeight="Bold" Grid.Column="3" />
+                                        </Grid>
+                                    </DataTemplate>
+                                </ListView.HeaderTemplate>
+                            </ListView>
+                        </StackPanel>
+
+                        
+                        <StackPanel Grid.Column="1" Spacing="8" Margin="8,0,0,0">
+                            <TextBlock Text="Free Partitions (Holes)"
+                                       Style="{ThemeResource BodyStrongTextBlockStyle}" />
+                            <ListView x:Name="FreePartitionsListView"
+                                      MaxHeight="300"
+                                      SelectionMode="None"
+                                      BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                                      BorderThickness="1"
+                                      CornerRadius="4">
+                                <ListView.HeaderTemplate>
+                                    <DataTemplate>
+                                        <Grid Padding="8,4"
+                                              Background="{ThemeResource CardBackgroundFillColorSecondaryBrush}">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="*" />
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Text="Start" FontWeight="Bold" Grid.Column="0" />
+                                            <TextBlock Text="Size" FontWeight="Bold" Grid.Column="1" />
+                                            <TextBlock Text="End" FontWeight="Bold" Grid.Column="2" />
+                                        </Grid>
+                                    </DataTemplate>
+                                </ListView.HeaderTemplate>
+                            </ListView>
+                        </StackPanel>
+                    </Grid>
+
+                </StackPanel>
+            </ScrollViewer>
+        </Grid>
+    </Grid>
+</Page>

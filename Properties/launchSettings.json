@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "MemorySimulator (Package)": {
+      "commandName": "MsixPackage"
+    },
+    "MemorySimulator (Unpackaged)": {
+      "commandName": "Project"
+    }
+  }
+}
